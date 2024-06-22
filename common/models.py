@@ -7,8 +7,8 @@ from django.utils.translation import gettext_lazy as _
 class AbstractModel(models.Model):
     uuid = models.UUIDField(
         _("UUID"),
-        default=uuid.uuid4(),
-        primary_key=True,
+        default=uuid.uuid4,
+        # primary_key=True,
         unique=True,
         editable=False,
         db_index=True,

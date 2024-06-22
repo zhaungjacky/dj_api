@@ -62,7 +62,7 @@ class UserAdmin(BaseUserAdmin):
             _("Details"),
             {
                 "fields": [
-                    # "id",
+                    "id",
                     "uuid",
                     "email",
                     "name",

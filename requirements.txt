@@ -10,3 +10,4 @@ psycopg2-binary==2.9.9
 gunicorn==21.2.0
 black==24.4.2
 django-admin-autocomplete-filter==0.7.1
+djangorestframework-simplejwt==5.3.1
