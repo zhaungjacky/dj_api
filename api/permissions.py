@@ -27,12 +27,12 @@ class IsAuthenticated(APIPermission):
 
 
 class IsOwner(APIPermission):
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, view, obj)->bool:
         return request.user and obj.owner == request.user
 
 
 class IsCommentOrPostOwner(IsOwner):
-    def has_object_permission(self, request, view, obj: Comment):
+    def has_object_permission(self, request, view, obj: Comment) -> bool:
         is_comment_owner = super().has_object_permission(request, view, obj)
         is_post_owner = super().has_object_permission(request, view, obj.post)
 

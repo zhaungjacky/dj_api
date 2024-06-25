@@ -8,47 +8,93 @@ from rest_framework.mixins import (
     UpdateModelMixin,
 )
 
+from content.models import Post
+
 # from api.permissions import IsAuthenticated
 
 from .querysets import PUBLIC_POSTS_QUERYSET, ALL_POSTS_QUERYSET
 from .serializers import PostSerializer
 from .filters import PostFilter
-from content.models import Post
-from api.permissions import AllowAny, IsAuthenticated
+from ..permissions import AllowAny, IsAuthenticated
 
 
 class PostAPIView(GenericAPIView):
     queryset = PUBLIC_POSTS_QUERYSET
     serializer_class = PostSerializer
     filterset_class = PostFilter
-    permission_classes=[AllowAny]
+    permission_classes = [AllowAny]
 
-
-    search_fields = ["owner__name","title"]
+    search_fields = ["owner__name", "title"]
     ordering_fields = ["created_at"]
-    ordering= ["-created_at"]
+    ordering = ["-created_at"]
 
 
-class PostListCreateView(ListModelMixin,CreateModelMixin,PostAPIView):
-    def get(self,request,*args,**kwargs):
-        return self.list(request,*args,**kwargs)
+class PostMeAPIView(PostAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ALL_POSTS_QUERYSET.filter(owner=self.request.user)
+
+
+class PostListCreateView(
+    ListModelMixin,
+    CreateModelMixin,
+    PostAPIView,
+):
+    # permission_classes=[IsAuthenticated]
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-    def perform_create(self, serializer):   
-        serializer.save(owner = self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
-class PostRetriveUpdateDestoryView(RetrieveModelMixin,UpdateModelMixin,DestroyModelMixin,PostAPIView):
 
-    def get(self,request,*args,**kwargs):
-        return self.retrieve(request,*args,**kwargs)
+class PostRetriveView(
+    RetrieveModelMixin,
+    PostAPIView,
+):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+
+class PostMeListView(
+    ListModelMixin,
+    PostMeAPIView,
+):
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class PostMeRetrieveUpdateDestoryView(
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    DestroyModelMixin,
+    PostMeAPIView,
+):
+
+    def get_permissions(self):
+        if self.request.method == "post":
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
     
-class PostMeListView(ListModelMixin,PostAPIView):
-    permission_classes=[IsAuthenticated]
-
-    def get_queryset(self):
-        return ALL_POSTS_QUERYSET.filter(owner =  self.request.user)
-
-    def get(self,request,*args,**kwargs):
-        return self.list(request,*args,**kwargs)
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request,*args, **kwargs)
+    
+    def perform_destroy(self, instance: Post):
+        instance.status = Post.Status.REMOVED
+        instance.save()

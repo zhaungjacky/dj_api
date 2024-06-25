@@ -2,6 +2,9 @@
 data/
 config.json
 
+frontend/android/
+frontend/build/
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,django,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,django,macos
 

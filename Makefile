@@ -28,3 +28,4 @@ docker_down:
 
 create_super_user:
 	python manage.py createsuperuser
+
